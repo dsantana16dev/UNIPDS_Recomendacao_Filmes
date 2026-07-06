@@ -1,0 +1,142 @@
+# MEMORIA.md
+
+# Projeto: Movie Recommendation System
+
+## Objetivo
+
+Construir um MVP de um sistema de recomendação de filmes reutilizando a
+arquitetura do projeto de produtos:
+`makeContext() -> encodeMovie() -> encodeUser() -> createTrainingData() -> TensorFlow.js -> predict()`
+
+## Status Geral
+
+-   [x] Ideia do projeto definida
+-   [x] Dataset escolhido (The Movies Dataset)
+-   [x] Arquitetura de alto nível definida
+-   [x] Decisão de manter a arquitetura TensorFlow.js
+-   [x] Decisão de utilizar banco vetorial (Qdrant)
+-   [x] DDD inicial criado
+-   [x] Repositório criado (GitHub: dsantana16dev/UNIPDS_Recomendacao_Filmes)
+-   [x] Ambiente Docker
+-   [x] Backend (scaffold FastAPI)
+-   [x] Frontend (scaffold React+Vite+Tailwind)
+-   [x] Banco PostgreSQL
+-   [x] Banco Vetorial (Qdrant)
+-   [ ] Modelo treinado
+-   [ ] MVP concluído
+
+------------------------------------------------------------------------
+
+# Backlog por Sprint
+
+## Sprint 0 --- Planejamento ✅
+
+**Objetivo:** definir arquitetura.
+
+### Concluído
+
+-   [x] Escolha do domínio (filmes)
+-   [x] Escolha do dataset
+-   [x] Arquitetura geral
+-   [x] Fluxo de ML
+-   [x] Documento DDD
+
+------------------------------------------------------------------------
+
+## Sprint 1 --- Infraestrutura
+
+**Meta:** projeto executando localmente.
+
+### Decisões
+
+-   Monorepo: `frontend/` (React+Vite+TS+Tailwind), `backend/` (FastAPI+SQLAlchemy,
+    estrutura DDD), `ml-service/` (Node + TensorFlow.js).
+-   ML mantido em **TensorFlow.js** conforme DDD → roda em microserviço Node
+    separado (container `ml-service`), consumido pelo backend via HTTP.
+-   Dataset (`archive/`, ~900MB) fora do versionamento (.gitignore).
+
+### Tarefas
+
+-   [x] Criar monorepo
+-   [x] Configurar React + Vite
+-   [x] Configurar FastAPI
+-   [x] Docker Compose
+-   [x] PostgreSQL
+-   [x] Qdrant
+-   [x] Estrutura de pastas
+-   [x] README inicial
+-   [x] Microserviço ml-service (TensorFlow.js)
+
+------------------------------------------------------------------------
+
+## Sprint 2 --- Ingestão de Dados
+
+-   [ ] Importar dataset
+-   [ ] Limpar dados
+-   [ ] Unificar CSVs
+-   [ ] Criar MovieRepository
+-   [ ] Popular PostgreSQL
+
+Entrega: catálogo de filmes disponível.
+
+------------------------------------------------------------------------
+
+## Sprint 3 --- Banco Vetorial
+
+-   [ ] Gerar embeddings
+-   [ ] Criar coleção Qdrant
+-   [ ] Indexar filmes
+-   [ ] Busca por similaridade
+
+Entrega: pesquisa vetorial funcionando.
+
+------------------------------------------------------------------------
+
+## Sprint 4 --- Machine Learning
+
+-   [ ] makeContext()
+-   [ ] encodeMovie()
+-   [ ] encodeUser()
+-   [ ] createTrainingData()
+-   [ ] trainModel()
+-   [ ] recommend()
+
+Entrega: modelo treinado.
+
+------------------------------------------------------------------------
+
+## Sprint 5 --- Backend
+
+-   [ ] API de filmes
+-   [ ] API de recomendações
+-   [ ] Favoritos
+-   [ ] Histórico
+-   [ ] Avaliações
+-   [ ] Swagger
+
+------------------------------------------------------------------------
+
+## Sprint 6 --- Frontend
+
+-   [ ] Login
+-   [ ] Home
+-   [ ] Pesquisa
+-   [ ] Página do filme
+-   [ ] Recomendações
+-   [ ] Favoritos
+-   [ ] Histórico
+
+------------------------------------------------------------------------
+
+## Sprint 7 --- MVP
+
+-   [ ] Fluxo completo
+-   [ ] Testes
+-   [ ] Ajustes de UX
+-   [ ] Documentação
+-   [ ] Deploy
+
+## Definição de MVP
+
+Um usuário consegue: 1. Pesquisar filmes. 2. Marcar filmes assistidos.
+3. Treinar o modelo. 4. Receber recomendações personalizadas.

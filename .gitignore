@@ -1,0 +1,39 @@
+# ==== Dataset (grande, ~900MB — não versionar) ====
+archive/
+*.csv
+
+# ==== Python / backend ====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ==== Node / frontend / ml-service ====
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+
+# ==== Ambiente ====
+.env
+.env.*
+!.env.example
+
+# ==== Editores / SO ====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ==== Docker ====
+*.pid
+
+# ==== Modelos treinados (gerados) ====
+models/*.bin
+models/*.json
+!models/.gitkeep
