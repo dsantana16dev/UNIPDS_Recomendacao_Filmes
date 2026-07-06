@@ -1,0 +1,4 @@
+# Dependências extras usadas só pela ingestão (Sprint 2).
+# O restante (sqlalchemy, psycopg) já está em backend/requirements.txt.
+#   pip install -r scripts/requirements-ingest.txt
+pandas>=2.2

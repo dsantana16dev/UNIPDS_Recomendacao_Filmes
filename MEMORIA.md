@@ -69,15 +69,24 @@ arquitetura do projeto de produtos:
 
 ------------------------------------------------------------------------
 
-## Sprint 2 --- Ingestão de Dados
+## Sprint 2 --- Ingestão de Dados ✅
 
--   [ ] Importar dataset
--   [ ] Limpar dados
--   [ ] Unificar CSVs
--   [ ] Criar MovieRepository
--   [ ] Popular PostgreSQL
+-   [x] Importar dataset
+-   [x] Limpar dados (ids inválidos, duplicatas, campos numéricos/datas)
+-   [x] Unificar CSVs (metadata + credits + keywords; ratings via links)
+-   [x] Criar MovieRepository
+-   [x] Popular PostgreSQL
 
-Entrega: catálogo de filmes disponível.
+Entrega: **catálogo de filmes disponível** — 45.433 filmes + 99.810 avaliações.
+
+### Resultado
+
+-   Modelos ORM `Movie` e `Rating` (`app/domain/movie.py`), arrays de
+    genres/cast/keywords.
+-   Script `backend/scripts/ingest_movies.py` (idempotente): rodar com o
+    Postgres do compose no ar → `cd backend && python -m scripts.ingest_movies`
+    (requer pandas — ver `backend/scripts/requirements-ingest.txt`).
+-   Endpoints: `GET /movies` (lista + busca `?q=`), `GET /movies/{id}` (detalhe).
 
 ------------------------------------------------------------------------
 

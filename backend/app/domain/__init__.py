@@ -1,2 +1,4 @@
 # Camada de domínio (DDD): entidades, value objects e regras de negócio.
-# Entidades (Movie, User, Rating, Favorite) entram a partir do Sprint 2.
+from app.domain.movie import Movie, Rating
+
+__all__ = ["Movie", "Rating"]

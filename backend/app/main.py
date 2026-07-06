@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health
+from app.api import health, movies
 from app.core.config import settings
 
 app = FastAPI(title=settings.project_name, version=settings.api_version)
@@ -16,6 +16,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(movies.router)
 
 
 @app.get("/")
