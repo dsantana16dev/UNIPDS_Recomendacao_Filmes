@@ -41,3 +41,14 @@ class MovieList(BaseModel):
     limit: int
     offset: int
     items: list[MovieSummary]
+
+
+class SimilarMovie(MovieSummary):
+    """Filme similar, com o score de similaridade (cosseno) do Qdrant."""
+
+    score: float
+
+
+class SimilarList(BaseModel):
+    movie_id: int
+    items: list[SimilarMovie]

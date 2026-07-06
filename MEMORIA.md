@@ -90,14 +90,24 @@ Entrega: **catálogo de filmes disponível** — 45.433 filmes + 99.810 avaliaç
 
 ------------------------------------------------------------------------
 
-## Sprint 3 --- Banco Vetorial
+## Sprint 3 --- Banco Vetorial ✅
 
--   [ ] Gerar embeddings
--   [ ] Criar coleção Qdrant
--   [ ] Indexar filmes
--   [ ] Busca por similaridade
+-   [x] Gerar embeddings (Universal Sentence Encoder, 512d, no ml-service)
+-   [x] Criar coleção Qdrant (movies, 512d, Cosine)
+-   [x] Indexar filmes (45.433 pontos)
+-   [x] Busca por similaridade
 
-Entrega: pesquisa vetorial funcionando.
+Entrega: **pesquisa vetorial funcionando**.
+
+### Resultado
+
+-   Embeddings via TensorFlow.js Universal Sentence Encoder no `ml-service`
+    (endpoint `POST /embed`; módulo `src/embedder.js`).
+-   Script `ml-service/scripts/index_movies.js`: lê filmes do Postgres, embute
+    em lote e faz upsert no Qdrant. Rodar: `docker compose exec ml-service npm run index`.
+-   Backend: `VectorRepository` (qdrant-client) + `GET /movies/{id}/similar`
+    (busca pelo ponto armazenado, hidrata detalhes do Postgres).
+-   Validado: Toy Story → Toy Story 2/3; Matrix → Matrix Revolutions + sci-fi.
 
 ------------------------------------------------------------------------
 

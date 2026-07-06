@@ -15,6 +15,13 @@ class MovieRepository:
     def get_by_id(self, movie_id: int) -> Movie | None:
         return self.db.get(Movie, movie_id)
 
+    def get_by_ids(self, ids: list[int]) -> dict[int, Movie]:
+        """Busca vários filmes por id, retornando um mapa id -> Movie."""
+        if not ids:
+            return {}
+        stmt = select(Movie).where(Movie.id.in_(ids))
+        return {m.id: m for m in self.db.execute(stmt).scalars()}
+
     def count(self) -> int:
         return self.db.execute(select(func.count()).select_from(Movie)).scalar_one()
 
