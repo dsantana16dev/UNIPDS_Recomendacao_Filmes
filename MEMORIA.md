@@ -22,8 +22,8 @@ arquitetura do projeto de produtos:
 -   [x] Frontend (scaffold React+Vite+Tailwind)
 -   [x] Banco PostgreSQL
 -   [x] Banco Vetorial (Qdrant)
--   [ ] Modelo treinado
--   [ ] MVP concluído
+-   [x] Modelo treinado
+-   [x] MVP concluído
 
 ------------------------------------------------------------------------
 
@@ -111,49 +111,154 @@ Entrega: **pesquisa vetorial funcionando**.
 
 ------------------------------------------------------------------------
 
-## Sprint 4 --- Machine Learning
+## Sprint 4 --- Machine Learning ✅
 
--   [ ] makeContext()
--   [ ] encodeMovie()
--   [ ] encodeUser()
--   [ ] createTrainingData()
--   [ ] trainModel()
--   [ ] recommend()
+-   [x] makeContext()
+-   [x] encodeMovie()
+-   [x] encodeUser()
+-   [x] createTrainingData()
+-   [x] trainModel()
+-   [x] recommend()
 
-Entrega: modelo treinado.
+Entrega: **modelo treinado** — classificação binária "gostou/não gostou".
+
+### Resultado
+
+-   Pipeline em TensorFlow.js no `ml-service` (módulos `src/context.js`,
+    `encode.js`, `data.js`, `model.js`, `recommender.js`):
+    -   `makeContext()` — z-score dos numéricos + vocabulário de 20 gêneros e
+        15 idiomas (`movieDim=552`, `inputDim=1104`).
+    -   `encodeMovie()` — numéricos + gêneros multi-hot + idioma one-hot +
+        **embedding USE 512d** (vindo do Qdrant).
+    -   `encodeUser()` — média dos filmes curtidos (cold-start = zeros).
+    -   `createTrainingData()` — `concat(userVec, movieVec)`; perfil exclui o
+        próprio filme (anti-leakage). Sinal: ratings MovieLens (>=4 = gostou).
+-   Rede `Dense(128)→64→32→1 sigmoid`, BCE + Adam, 151.809 params.
+    Treino via `tf.data` em streaming (evita OOM).
+-   Script `ml-service/scripts/train_model.js` — rodar:
+    `docker compose exec ml-service npm run train`.
+    99.810 exemplos (51.446 pos / 48.364 neg) → **val_acc ≈ 0.70** em 10 épocas.
+-   Modelo persistido no volume Docker `mlmodels` (`/app/models/recommender`).
+-   Endpoint `POST /recommend` no ml-service (`{userId, limit}`): monta o perfil,
+    pontua pool de candidatos (top-3000 populares) e devolve top-N sem repetir
+    vistos. Validado: user 1 (curte clássicos: Tron, Cinema Paradiso) →
+    recomenda Yojimbo, M, Metropolis, North by Northwest, Night and Fog.
 
 ------------------------------------------------------------------------
 
-## Sprint 5 --- Backend
+## Sprint 5 --- Backend (fatia MVP) ✅
 
--   [ ] API de filmes
--   [ ] API de recomendações
--   [ ] Favoritos
--   [ ] Histórico
--   [ ] Avaliações
--   [ ] Swagger
+-   [x] API de filmes *(feito nos Sprints 2/3: /movies, /movies/{id}, /similar)*
+-   [x] Usuários / autenticação (leve, sem senha)
+-   [x] Histórico (assistidos)
+-   [x] API de recomendações (backend → ml-service)
+-   [x] Swagger *(automático em /docs)*
+-   [ ] Favoritos *(2ª leva)*
+-   [ ] Avaliações *(2ª leva)*
+
+Entrega: **caminho crítico do MVP no backend** — pesquisar → marcar
+assistido → recomendar (o treino é o Sprint 4).
+
+### Resultado
+
+-   Entidades `User` e `Watched` (`app/domain/user.py`); tabelas criadas no
+    startup via `Base.metadata.create_all` (lifespan) — sem Alembic, idempotente.
+-   Auth leve (sem senha, decisão do usuário): `POST /users` (cadastro, 409 se
+    e-mail repetido), `POST /users/login` (seleção por e-mail), `GET /users`,
+    `GET /users/{id}`.
+-   Histórico: `POST /users/{id}/watched` (idempotente), `GET /users/{id}/watched`,
+    `DELETE /users/{id}/watched/{movie_id}`.
+-   Recomendações: `GET /users/{id}/recommendations` — junta os assistidos e
+    delega ao ml-service (`MLClient`, httpx). **Integração desacoplada**: o
+    `/recommend` do ml-service foi estendido para aceitar
+    `{ likedMovieIds, seenMovieIds, limit }` (não acopla ao storage de usuários;
+    mantém o caminho por `userId` p/ testes MovieLens). Backend hidrata os
+    detalhes do Postgres preservando ordem/score.
+-   Validado ponta-a-ponta: histórico sci-fi (Alien, Blade Runner, Matrix,
+    Star Wars, Inception, Terminator) → recomenda Empire Strikes Back (0.98),
+    Return of the Jedi, Terminator 2, Guardians of the Galaxy… sem repetir vistos.
+-   Sem deps novas no backend (usa httpx já presente); backend recarrega sozinho
+    (volume + --reload). ml-service precisa de rebuild (sem bind-mount).
 
 ------------------------------------------------------------------------
 
-## Sprint 6 --- Frontend
+## Sprint 6 --- Frontend ✅
 
--   [ ] Login
--   [ ] Home
--   [ ] Pesquisa
--   [ ] Página do filme
--   [ ] Recomendações
--   [ ] Favoritos
--   [ ] Histórico
+-   [x] Login
+-   [x] Home
+-   [x] Pesquisa
+-   [x] Página do filme
+-   [x] Recomendações
+-   [x] Favoritos *(client-side / localStorage — sem endpoint no backend)*
+-   [x] Histórico
+
+Entrega: **SPA React completa** — login → explorar → detalhe → marcar
+assistido → recomendações, com favoritos locais.
+
+### Resultado
+
+-   Stack: React 19 + Vite + **react-router-dom v7** + Tailwind v4.
+    Roteamento em `src/App.tsx`; `BrowserRouter`+`AuthProvider` em `main.tsx`.
+-   Camada de API tipada (`src/api/client.ts` + `types.ts`) espelhando os
+    schemas do backend; `ApiError` carrega status + `detail` do FastAPI.
+-   Auth leve: `AuthContext` guarda o usuário no `localStorage`; rotas
+    protegidas via `ProtectedRoute` (redireciona p/ `/login`, layout+navbar).
+-   Páginas (`src/pages/`): `Login` (entrar/cadastrar), `Home` (populares +
+    "carregar mais"), `Search` (`?q=`), `MovieDetail` (detalhe + marcar
+    assistido + favoritar + parecidos via `/similar`), `Recommendations`
+    (trata 503 "modelo não treinado" e histórico vazio), `Favorites`
+    (localStorage por usuário — `useFavorites`), `History` (assistidos, remover
+    otimista).
+-   Componentes reutilizáveis: `MovieCard` (poster TMDB via `lib/poster.ts`,
+    heart de favorito, score badge, remover), `MovieGrid`, `Navbar` (busca +
+    nav), estados `Spinner`/`Empty`/`Error`.
+-   Pôsteres montados do CDN público da TMDB (`image.tmdb.org/t/p/...`).
+-   Fix de build: `@tailwindcss/vite@4.3.2` publica `exports.types` para um
+    `.d.mts` que não vem no pacote → `tsc -b` quebrava; destravado com
+    `frontend/env.d.ts` (declaração ambiente) incluído no `tsconfig.node.json`.
+-   Verificado: `npm run build` (tsc + vite) e `npm run lint` (oxlint) limpos;
+    dev server sobe e serve a app (HTTP 200).
+-   **Rodar:** `cd frontend && npm install && npm run dev` (ou `docker compose
+    up frontend`). Requer backend no ar (`VITE_API_URL`, default
+    `http://localhost:8000`). Favoritos/histórico precisam de usuário logado.
 
 ------------------------------------------------------------------------
 
-## Sprint 7 --- MVP
+## Sprint 7 --- MVP ✅
 
--   [ ] Fluxo completo
--   [ ] Testes
--   [ ] Ajustes de UX
--   [ ] Documentação
--   [ ] Deploy
+-   [x] Fluxo completo
+-   [x] Testes
+-   [x] Ajustes de UX
+-   [x] Documentação
+-   [x] Deploy
+
+Entrega: **MVP fechado** — fluxo ponta-a-ponta validado, testes de API,
+documentação e guia de deploy.
+
+### Resultado
+
+-   **Fluxo completo validado** contra a stack no ar: cadastrar → pesquisar →
+    marcar assistidos (perfil sci-fi) → recomendações (Empire Strikes Back 0.98,
+    Guardians, Terminator 2…), sem vazar filmes vistos. Os 4 critérios da
+    Definição de MVP passam.
+-   **Testes (pytest + FastAPI TestClient)**: `backend/tests/` com 24 testes
+    cobrindo catálogo (lista/busca/detalhe/similar), usuários/auth, histórico e
+    recomendações (hidratação, exclusão de vistos, 503 modelo-não-treinado,
+    404s). Sem Postgres nem ml-service: repositórios fake via
+    `dependency_overrides` + monkeypatch de `MLClient`/`VectorRepository` (os
+    modelos ORM usam `ARRAY`, específico do Postgres → SQLite não serve).
+    `requirements-dev.txt` + `pytest.ini`. Rodar:
+    `docker compose exec backend sh -c "pip install -q -r requirements-dev.txt && pytest"`.
+-   **UX**: `<title>`/`lang=pt-BR`/meta description no `index.html`; componente
+    `ScrollToTop` (reseta scroll ao trocar de rota).
+-   **Documentação**: `README.md` atualizado (roadmap ✅, seção MVP, testes) e
+    novo **`DEPLOY.md`** (bring-up, pipeline de dados, verificação, operação,
+    notas de produção, troubleshooting).
+-   **Deploy** (Docker Compose): healthchecks em `backend` (python) e
+    `ml-service` (node) — validados na stack viva; `scripts/bootstrap-data.sh`
+    para o pipeline (ingestão → indexação → treino). Sem nuvem.
+-   Verificado: `npm run build` + `npm run lint` limpos; 24/24 testes verdes;
+    `docker compose config` válido.
 
 ## Definição de MVP
 

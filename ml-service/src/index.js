@@ -2,6 +2,8 @@ import express from "express";
 import * as tf from "@tensorflow/tfjs-node";
 
 import { embed, EMBEDDING_DIM } from "./embedder.js";
+import { recommend, recommendForLiked } from "./recommender.js";
+import { modelExists } from "./model.js";
 
 const app = express();
 app.use(express.json({ limit: "5mb" }));
@@ -16,6 +18,7 @@ app.get("/health", (_req, res) => {
     tfjs_version: tf.version.tfjs,
     backend: tf.getBackend(),
     embedding_dim: EMBEDDING_DIM,
+    model_trained: modelExists(),
   });
 });
 
@@ -34,12 +37,33 @@ app.post("/embed", async (req, res) => {
   }
 });
 
-// Placeholder do pipeline de recomendação — implementação real no Sprint 4.
-app.post("/recommend", (_req, res) => {
-  res.status(501).json({
-    status: "not_implemented",
-    message: "Pipeline de recomendação será implementado no Sprint 4.",
-  });
+// Recomendações personalizadas (Sprint 4/5).
+// Aceita { likedMovieIds, seenMovieIds } (usuário real, via backend) OU
+// { userId } (usuário do dataset MovieLens, para testes).
+app.post("/recommend", async (req, res) => {
+  const { userId, likedMovieIds, seenMovieIds } = req.body || {};
+  const limit = Number(req.body?.limit) || 10;
+  try {
+    if (Array.isArray(likedMovieIds)) {
+      const items = await recommendForLiked(likedMovieIds, seenMovieIds || [], { limit });
+      return res.json({ count: items.length, items });
+    }
+    if (Number.isInteger(Number(userId))) {
+      const items = await recommend(Number(userId), { limit });
+      return res.json({ userId: Number(userId), count: items.length, items });
+    }
+    return res
+      .status(400)
+      .json({ error: "Envie { likedMovieIds: number[] } ou { userId: number }" });
+  } catch (err) {
+    if (err.code === "MODEL_NOT_TRAINED") {
+      return res.status(503).json({
+        error: "Modelo não treinado — rode: docker compose exec ml-service npm run train",
+      });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Falha ao gerar recomendações" });
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {

@@ -37,3 +37,5 @@ Thumbs.db
 models/*.bin
 models/*.json
 !models/.gitkeep
+# Sprint 4 — modelo de recomendação do ml-service (gerado; persiste em volume Docker)
+ml-service/models/

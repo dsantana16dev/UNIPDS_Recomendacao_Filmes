@@ -70,6 +70,39 @@ docker compose up --build
 
 Para derrubar: `docker compose down` (adicione `-v` para apagar os volumes).
 
+> **Base nova?** É preciso rodar o pipeline de dados uma vez (ingestão →
+> indexação → treino). Passo a passo completo em **[`DEPLOY.md`](./DEPLOY.md)**;
+> atalho: `sh scripts/bootstrap-data.sh`.
+
+## O MVP
+
+Fluxo entregue (ver [Definição de MVP](./MEMORIA.md#definição-de-mvp)):
+
+1. **Pesquisar** filmes no catálogo (`?q=`, ~45 mil títulos).
+2. **Marcar como assistidos** (histórico = sinal de gosto).
+3. **Treinar** o modelo (TensorFlow.js, no `ml-service`).
+4. Receber **recomendações personalizadas** (classificação "vai gostar?"),
+   além de **similaridade semântica** por filme (Qdrant).
+
+Cadastro/login é leve (só e-mail, sem senha) e favoritos ficam locais ao
+navegador. Abra http://localhost:5173 e siga o fluxo, ou explore a API em
+http://localhost:8000/docs.
+
+## Testes
+
+API do backend (pytest + FastAPI TestClient, com repositórios fake — não precisa
+de Postgres nem do ml-service):
+
+```bash
+docker compose exec backend sh -c "pip install -q -r requirements-dev.txt && pytest"
+```
+
+Frontend (type-check + build + lint):
+
+```bash
+cd frontend && npm ci && npm run build && npm run lint
+```
+
 ## Dataset
 
 [The Movies Dataset](https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset) —
@@ -79,10 +112,12 @@ colocar os CSVs em `archive/` (já presente localmente, não versionado por ser 
 ## Roadmap (sprints)
 
 - **Sprint 0** — Planejamento ✅
-- **Sprint 1** — Infraestrutura *(atual)*
-- **Sprint 2** — Ingestão de dados
-- **Sprint 3** — Banco vetorial (embeddings)
-- **Sprint 4** — Machine Learning (treino)
-- **Sprint 5** — Backend (API completa)
-- **Sprint 6** — Frontend
-- **Sprint 7** — MVP
+- **Sprint 1** — Infraestrutura ✅
+- **Sprint 2** — Ingestão de dados ✅
+- **Sprint 3** — Banco vetorial (embeddings) ✅
+- **Sprint 4** — Machine Learning (treino) ✅
+- **Sprint 5** — Backend (API completa) ✅
+- **Sprint 6** — Frontend ✅
+- **Sprint 7** — MVP ✅
+
+Detalhes por sprint em [`MEMORIA.md`](./MEMORIA.md).

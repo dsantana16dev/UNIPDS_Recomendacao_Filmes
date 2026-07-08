@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -52,3 +52,44 @@ class SimilarMovie(MovieSummary):
 class SimilarList(BaseModel):
     movie_id: int
     items: list[SimilarMovie]
+
+
+# --------------------------------------------------------------------------- #
+# Sprint 5 — usuários, histórico e recomendações
+# --------------------------------------------------------------------------- #
+class UserCreate(BaseModel):
+    name: str
+    email: str
+
+
+class UserLogin(BaseModel):
+    email: str
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: str
+    created_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class WatchedCreate(BaseModel):
+    movie_id: int
+
+
+class WatchedList(BaseModel):
+    user_id: int
+    items: list[MovieSummary]
+
+
+class RecommendedMovie(MovieSummary):
+    """Filme recomendado, com o score (probabilidade de gostar) do modelo."""
+
+    score: float
+
+
+class RecommendationList(BaseModel):
+    user_id: int
+    items: list[RecommendedMovie]

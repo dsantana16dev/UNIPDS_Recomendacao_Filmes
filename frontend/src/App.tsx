@@ -1,58 +1,33 @@
-import { useEffect, useState } from "react";
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-
-type Health = {
-  status: string;
-  service: string;
-  database: string;
-};
+import { Navigate, Route, Routes } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { Favorites } from "./pages/Favorites";
+import { History } from "./pages/History";
+import { Home } from "./pages/Home";
+import { Login } from "./pages/Login";
+import { MovieDetail } from "./pages/MovieDetail";
+import { Recommendations } from "./pages/Recommendations";
+import { Search } from "./pages/Search";
 
 function App() {
-  const [health, setHealth] = useState<Health | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((r) => r.json())
-      .then(setHealth)
-      .catch(() => setError("Backend indisponível"));
-  }, []);
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-4xl font-bold tracking-tight">
-        🎬 UNIPDS · Recomendação de Filmes
-      </h1>
-      <p className="text-slate-400">Sprint 1 — Infraestrutura no ar</p>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/login" element={<Login />} />
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 px-6 py-4 min-w-72">
-        <h2 className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-          Status do backend
-        </h2>
-        {error && <p className="text-red-400">{error}</p>}
-        {!error && !health && <p className="text-slate-400">Verificando…</p>}
-        {health && (
-          <ul className="space-y-1 text-sm">
-            <li>
-              API: <span className="text-emerald-400">{health.status}</span>
-            </li>
-            <li>
-              Banco:{" "}
-              <span
-                className={
-                  health.database === "up"
-                    ? "text-emerald-400"
-                    : "text-amber-400"
-                }
-              >
-                {health.database}
-              </span>
-            </li>
-          </ul>
-        )}
-      </div>
-    </div>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/movies/:id" element={<MovieDetail />} />
+          <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/history" element={<History />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
